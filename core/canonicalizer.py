@@ -59,7 +59,7 @@ ALIASES = {
     "tomatoes": "tomato",
     "onions": "onion",
     "potatoes": "potato",
-    "russet potatoes": "russet potato"
+    "russet potatoes": "russet potato",
 
     # normalize stocks
     "chicken stock": "stock",
