@@ -1,0 +1,45 @@
+{
+  "modes": {
+    "expiring_soon_days": 3,
+    "mode_selection": {
+      "empty_fridge": { "unique_items_count_lt": 3 },
+      "low_stock": { "unique_items_count_gte": 3, "unique_items_count_lt": 8 },
+      "abundant": { "unique_items_count_gte": 8 }
+    },
+    "candidate_generation": {
+      "abundant": { "min_matched_core": 3, "max_missing_core": 6 },
+      "low_stock": { "min_matched_core": 2, "max_missing_core": 6 },
+      "empty_fridge": { "min_matched_core": 0, "max_missing_core": 10 }
+    },
+    "ranking": {
+      "weights": {
+        "coverage": 1.0,
+        "core_size_bonus_log": 0.08,
+        "missing_penalty": -0.12,
+        "quick_bites_penalty": -0.2,
+        "expiring_soon_boost": 0.15
+      },
+      "quick_bites_core_count_lt": 3,
+      "high_confidence_coverage_threshold": 0.7
+    },
+    "diversity": {
+      "max_per_primary_ingredient": 1,
+      "dedupe_same_title": true
+    },
+    "presentation": {
+      "max_quick_by_mode": {
+        "abundant": 1,
+        "low_stock": 3,
+        "empty_fridge": 8
+      }
+    },
+    "low_coverage_mode": {
+      "trigger_if_no_main_recipe_with_coverage_gte": 0.7,
+      "behavior": {
+        "prioritize_quick_bites": true,
+        "include_shopping_list": true,
+        "include_suggested_actions": true
+      }
+    }
+  }
+}

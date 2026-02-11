@@ -1,0 +1,145 @@
+{
+  "restrictions": [
+    {
+      "id": "allergy_nuts",
+      "label": "Nut allergy",
+      "severity": "hard",
+      "match_mode": "phrase",
+      "scope": ["ingredients_norm", "ingredients_raw"],
+      "exclude_phrases": [
+        "almond",
+        "almond flour",
+        "almond butter",
+        "cashew",
+        "cashew butter",
+        "peanut",
+        "peanut butter",
+        "walnut",
+        "pecan",
+        "pistachio",
+        "hazelnut",
+        "macadamia",
+        "pine nut",
+        "pinenut",
+        "chestnut",
+        "mixed nuts",
+        "nut butter"
+      ]
+    },
+    {
+      "id": "allergy_shellfish",
+      "label": "Shellfish allergy",
+      "severity": "hard",
+      "match_mode": "phrase",
+      "scope": ["ingredients_norm", "ingredients_raw"],
+      "exclude_phrases": [
+        "shrimp",
+        "prawn",
+        "crab",
+        "lobster",
+        "clam",
+        "mussel",
+        "oyster",
+        "scallop"
+      ]
+    },
+    {
+      "id": "diet_vegan",
+      "label": "Vegan",
+      "severity": "hard",
+      "match_mode": "phrase",
+      "scope": ["ingredients_norm", "ingredients_raw"],
+      "exclude_phrases": [
+        "beef",
+        "pork",
+        "chicken",
+        "turkey",
+        "lamb",
+        "duck",
+        "fish",
+        "salmon",
+        "tuna",
+        "anchovy",
+        "shrimp",
+        "crab",
+        "lobster",
+        "gelatin",
+        "egg",
+        "eggs",
+        "milk",
+        "butter",
+        "cheese",
+        "yogurt",
+        "cream",
+        "whey",
+        "honey"
+      ]
+    },
+    {
+      "id": "diet_vegetarian",
+      "label": "Vegetarian",
+      "severity": "hard",
+      "match_mode": "phrase",
+      "scope": ["ingredients_norm", "ingredients_raw"],
+      "exclude_phrases": [
+        "beef",
+        "pork",
+        "chicken",
+        "turkey",
+        "lamb",
+        "duck",
+        "fish",
+        "salmon",
+        "tuna",
+        "anchovy",
+        "shrimp",
+        "crab",
+        "lobster",
+        "gelatin"
+      ]
+    },
+    {
+      "id": "diet_dairy_free",
+      "label": "Dairy-free",
+      "severity": "hard",
+      "match_mode": "phrase",
+      "scope": ["ingredients_norm", "ingredients_raw"],
+      "exclude_phrases": [
+        "milk",
+        "buttermilk",
+        "cream",
+        "half and half",
+        "butter",
+        "ghee",
+        "cheese",
+        "cream cheese",
+        "yogurt",
+        "whey",
+        "casein"
+      ]
+    },
+    {
+      "id": "diet_gluten_free",
+      "label": "Gluten-free",
+      "severity": "hard",
+      "match_mode": "phrase",
+      "scope": ["ingredients_norm", "ingredients_raw"],
+      "exclude_phrases": [
+        "wheat",
+        "flour",
+        "all purpose flour",
+        "bread",
+        "pasta",
+        "noodle",
+        "breadcrumbs",
+        "barley",
+        "rye",
+        "seitan",
+        "bulgur",
+        "couscous",
+        "soy sauce"
+      ],
+      "notes": "Soy sauce often contains wheat unless labeled gluten-free."
+    }
+  ]
+}
