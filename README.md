@@ -157,6 +157,48 @@ python run_local.py
 
 ------------------------------------------------------------------------
 
+# Environment Variables
+
+Create a local `.env` file (do not commit it) based on `.env.example`:
+
+```
+FATSECRET_CLIENT_ID="..."
+FATSECRET_CLIENT_SECRET="..."
+```
+
+------------------------------------------------------------------------
+
+# Deploy on Render
+
+This service can be deployed as a Render web service.
+
+1) Push this repo to GitHub.
+2) In Render, create a **Web Service** from the repo.
+3) Build command:
+
+```
+pip install -r requirements.txt
+```
+
+4) Start command:
+
+```
+uvicorn api.server:app --host 0.0.0.0 --port 8000
+```
+
+5) Set environment variables in Render:
+
+- `FATSECRET_CLIENT_ID` (optional)
+- `FATSECRET_CLIENT_SECRET` (optional)
+
+Once deployed, set `RECOMMENDER_URL` in `foodies` to:
+
+```
+https://<your-render-service>.onrender.com/recommend
+```
+
+-----------------------------------------------------------------------
+
 # Known Limitations
 
 Not yet implemented: - Minimum coverage floor per mode - Ingredient-type

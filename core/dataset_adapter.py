@@ -1,7 +1,11 @@
-import pandas as pd
+from functools import lru_cache
 from pathlib import Path
+
+import pandas as pd
+
 from .canonicalizer import parse_ingredients
 
+@lru_cache(maxsize=4)
 def load_recipes(csv_path: Path):
     df = pd.read_csv(csv_path)
 
