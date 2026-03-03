@@ -36,7 +36,6 @@ PHRASE_INGREDIENTS = [
     "cream cheese",
     "coconut milk",
     "evaporated milk",
-    "evaporated milk",
     "whole milk",
     "skim milk",
     "almond milk",
@@ -60,12 +59,17 @@ ALIASES = {
     "onions": "onion",
     "potatoes": "potato",
     "russet potatoes": "russet potato",
+    "mushrooms": "mushroom",
 
     # normalize stocks
     "chicken stock": "stock",
     "beef stock": "stock",
     "vegetable stock": "stock",
     "fish stock": "stock",
+    "bouillon": "stock",
+
+    # diary
+    "sharp cheddar": "cheddar cheese",
 
     # IMPORTANT: keep coconut milk distinct from milk
     "coconut milk": "coconut milk",
@@ -73,6 +77,8 @@ ALIASES = {
     # parts of ingredient
     "yolk": "egg",
     "egg yolk": "egg",
+    "egg whites": "egg",
+    "egg white": "egg",
 
     # normalize spice blends
     "chinese five spice": "five spice",
@@ -80,9 +86,28 @@ ALIASES = {
 
 # tokens that are usually not meaningful alone in this dataset
 DROP_TOKENS = {
+    # existing
     "five", "chinese",
     "t", "reduced", "eating", "single", "back", "flower",
-    "fresh", "large", "small"
+    "fresh", "large", "small",
+
+    # units / measures
+    "cup", "cups", "tbsp", "tablespoon", "tablespoons",
+    "tsp", "teaspoon", "teaspoons",
+    "oz", "ounce", "ounces",
+    "lb", "pound", "pounds",
+    "g", "kg", "ml", "l",
+
+    # prep words
+    "chopped", "minced", "diced", "sliced", "shredded", "grated",
+    "crushed", "ground", "drained", "rinsed", "peeled", "cooked",
+    "optional",
+
+    # common “descriptor noise”
+    "baby", "organic", "sharp",
+    "free", "fat", "lowfat", "nonfat", "reducedfat",
+    "boneless", "skinless",
+    "to", "taste", "brown", "white",
 }
 
 

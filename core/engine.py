@@ -5,13 +5,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .constraints import ConstraintEngine
-from .dataset_adapter import load_recipes
 from .inventory_adapter import adapt_inventory
 from .matcher import match_recipe
 from .mode_selector import load_policy, inventory_summary, select_mode
 from .scorer import score_recipe
 from .diversity import diversify
 from .shopping_list import build_shopping_list
+from .recipe_source import get_recipes_provider_first, hydrate_fatsecret_details
 
 
 def recommend(
@@ -22,18 +22,15 @@ def recommend(
     data_path: Path = Path("data/df_parsed.csv"),
     restrictions_path: Path = Path("config/restrictions.json"),
     policy_path: Path = Path("config/policy.json"),
+    provider_enabled: bool = True,
 ) -> Dict[str, Any]:
     """
-    End-to-end deterministic recommendation engine.
+    Provider-first deterministic recommendation engine with local fallback.
 
-    Inputs
-    - inventory_payload: list of inventory dicts (from app)
-    - restrictions: list of restriction ids (e.g., ["allergy_nuts", "diet_vegan"])
-    - top_k: number of recipes to return
-    - debug: include debug info in response
-
-    Output
-    - dict with: mode, inventory_summary, recommendations, (optional) shopping_list, debug
+    - Provider (FatSecret) supplies candidates + metadata.
+    - Local CSV dataset is fallback if provider fails or returns empty.
+    - Deterministic matching/scoring/diversity/shopping list remain the same.
+    - Provider detail calls (cook time + instructions) are fetched only for final top results.
     """
     restrictions = restrictions or []
 
@@ -46,9 +43,6 @@ def recommend(
     quick_bites_core_lt = modes_cfg["ranking"]["quick_bites_core_count_lt"]
     high_conf_threshold = modes_cfg["ranking"]["high_confidence_coverage_threshold"]
 
-    # ---- Load recipes ----
-    recipes = load_recipes(data_path)
-
     # ---- Adapt inventory ----
     inv_items = adapt_inventory(inventory_payload, expiring_soon_days=expiring_soon_days)
     inv_set = set([i.canonical_name for i in inv_items])
@@ -56,11 +50,24 @@ def recommend(
     inv_sum = inventory_summary(inv_items, expiring_soon_days)
     mode = select_mode(inv_sum["unique_items_count"], policy)
 
+    # ---- Choose provider search terms (simple + deterministic) ----
+    # Prefer expiring soon items first to bias candidates.
+    inv_terms = list(inv_sum.get("expiring_soon_items", [])) + sorted(list(inv_set))
+
+    # ---- Load recipes (provider-first, local fallback) ----
+    # Optional: you can use mode to pass prep_time_to later, but keep simple for now.
+    recipes, source_meta = get_recipes_provider_first(
+        inv_terms=inv_terms,
+        policy=policy,
+        local_data_path=data_path,
+        provider_enabled=provider_enabled,
+        provider_max_results=50,
+        provider_prep_time_to=None,
+    )
+
     # ---- Apply hard restrictions ----
     cengine = ConstraintEngine(restrictions_path)
     filtered, exclusion_counts = cengine.filter_recipes(recipes, restrictions)
-
-    # Build exclude set for shopping list safety
     exclude_set = cengine.build_exclude_set(restrictions)
 
     # ---- Candidate thresholds by mode ----
@@ -121,6 +128,16 @@ def recommend(
         dedupe_title=bool(div_cfg.get("dedupe_same_title", True)),
     )
 
+    # ---- Hydrate provider details for top recipes only ----
+    # This fills in cook time + instructions when provider is fatsecret.
+    top_recipe_dicts = [r for (_, r, *_rest) in top_items]
+    if source_meta.source == "fatsecret":
+        try:
+            hydrate_fatsecret_details(top_recipe_dicts, top_n=len(top_recipe_dicts))
+        except Exception as e:
+            # Don't fail the whole engine if detail hydration fails.
+            source_meta.note += f" | detail_hydration_failed: {type(e).__name__}: {e}"
+
     # ---- Build response recommendations ----
     recommendations: List[Dict[str, Any]] = []
     for s, r, matched, missing, coverage, core_size, is_quick, uses_expiring in top_items:
@@ -134,9 +151,13 @@ def recommend(
 
         recommendations.append(
             {
-                "recipe_id": r["recipe_id"],
+                "recipe_id": r.get("recipe_id"),
                 "title": r.get("title") or "",
                 "url": r.get("url"),
+                "image_url": r.get("image_url"),
+                "description": r.get("description"),
+                "time_minutes": r.get("time_minutes"),
+                "instructions": r.get("instructions"),  # list[str] or None
                 "bucket": "quick_bites" if is_quick else "main",
                 "score": round(float(s), 3),
                 "coverage": round(float(coverage), 3),
@@ -144,6 +165,7 @@ def recommend(
                 "missing": missing,
                 "reasons": reasons,
                 "violations": [],
+                "source": r.get("provider", source_meta.source),
             }
         )
 
@@ -151,15 +173,17 @@ def recommend(
         "mode": mode,
         "inventory_summary": inv_sum,
         "recommendations": recommendations,
+        "source": source_meta.source,
+        "source_note": source_meta.note,
     }
 
     # ---- Shopping list (only for low_stock / empty_fridge) ----
     if mode in ("low_stock", "empty_fridge"):
         resp["shopping_list"] = build_shopping_list(
-            scored_items=scored[:500],  # keep it fast + relevant
+            scored_items=scored[:500],
             top_n=8,
             max_missing_considered=3,
-            exclude_items=exclude_set,  # prevent restricted ingredients
+            exclude_items=exclude_set,
         )
 
     # ---- Debug info ----
@@ -173,6 +197,7 @@ def recommend(
             "quick_bites_cap": max_quick,
             "duplicate_titles_in_top": len(titles) - len(set(titles)),
             "shopping_exclude_set_size": len(exclude_set),
+            "provider_candidate_count": getattr(source_meta, "provider_count", 0),
         }
 
     return resp
